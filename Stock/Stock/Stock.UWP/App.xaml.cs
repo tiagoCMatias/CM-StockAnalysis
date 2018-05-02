@@ -53,7 +53,7 @@ namespace Stock.UWP
                 rootFrame.NavigationFailed += OnNavigationFailed;
 
                 Xamarin.Forms.Forms.Init(e);
-
+                OxyPlot.Xamarin.Forms.Platform.UWP.PlotViewRenderer.Init();
                 if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
                 {
                     //TODO: Load state from previously suspended application

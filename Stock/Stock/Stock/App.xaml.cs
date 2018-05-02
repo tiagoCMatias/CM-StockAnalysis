@@ -13,7 +13,7 @@ namespace Stock
 		{
 			InitializeComponent();
 
-			MainPage = new Stock.MainPage();
+			MainPage = new MainPage();
 		}
 
 		protected override void OnStart ()
