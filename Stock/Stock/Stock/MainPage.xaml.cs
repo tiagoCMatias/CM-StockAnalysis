@@ -1,135 +1,167 @@
 ﻿using OxyPlot.Xamarin.Forms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using OxyPlot;
-using OxyPlot.Axes;
 using OxyPlot.Series;
 using Xamarin.Forms;
+using Stock.ViewModel;
+using OxyPlot.Axes;
+using Stock.Services.Api;
 
 namespace Stock
 {
 	public partial class MainPage : ContentPage
 	{
+	    public ApiRequest MyRequest = new ApiRequest();
 
-	    public PlotModel AreaModel { get; set; }
+        public GraphViewModel myViewModel;
+
+	    public int Dias = -7;
+
+        private LineSeries LineSeriesOne = new LineSeries
+        {
+            StrokeThickness = 2.0,
+            Color = OxyColors.Green
+            
+        };
+
+	    private LineSeries LineSeriesTwo = new LineSeries
+	    {
+	        StrokeThickness = 2.0,
+	        Color = OxyColors.Red
+	    };
 
         public MainPage()
 		{
-
 			InitializeComponent();
-		    createPicker();
 
-		}
+            BindingContext = App.Locator.GraphViewModel;
+        }
 
-	    public PlotModel CreateAreaChart()
-	    {
-	        var plotModel1 = new PlotModel { Title = "AreaSeries with crossing lines" };
-	        var areaSeries1 = new AreaSeries();
-	        areaSeries1.Points.Add(new DataPoint(0, 50));
-	        areaSeries1.Points.Add(new DataPoint(10, 140));
-	        areaSeries1.Points.Add(new DataPoint(20, 60));
-	        areaSeries1.Points2.Add(new DataPoint(0, 60));
-	        areaSeries1.Points2.Add(new DataPoint(5, 80));
-	        areaSeries1.Points2.Add(new DataPoint(20, 70));
-	        plotModel1.Series.Add(areaSeries1);
-	        return plotModel1;
-	    }
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
 
-        public void createPicker()
-	    {
-            // Dictionary to get Color from color name.
-            Dictionary<string, Color> nameToColor = new Dictionary<string, Color>
+            myViewModel = BindingContext as GraphViewModel;
+            if (myViewModel != null)
             {
-                { "Aqua", Color.Aqua }, { "Black", Color.Black },
-                { "Blue", Color.Blue }, { "Fucshia", Color.Fuchsia },
-                { "Gray", Color.Gray }, { "Green", Color.Green },
-                { "Lime", Color.Lime }, { "Maroon", Color.Maroon },
-                { "Navy", Color.Navy }, { "Olive", Color.Olive },
-                { "Purple", Color.Purple }, { "Red", Color.Red },
-                { "Silver", Color.Silver }, { "Teal", Color.Teal },
-                { "White", Color.White }, { "Yellow", Color.Yellow }
-            };
+                var startDate = DateTime.Now.AddDays(-10);
+                var endDate = DateTime.Now;
 
-            Label header = new Label
-            {
-                Text = "Picker",
-                FontSize = Device.GetNamedSize(NamedSize.Large, typeof(Label)),
-                HorizontalOptions = LayoutOptions.Center
-            };
+                var minValue = DateTimeAxis.ToDouble(startDate);
+                var maxValue = DateTimeAxis.ToDouble(endDate);
 
-            Picker picker1 = new Picker
-            {
-                Title = "Color",
-                WidthRequest = 60
-            };
-
-	        Picker picker2 = new Picker
-	        {
-	            Title = "Color",
-	            VerticalOptions = LayoutOptions.CenterAndExpand,
-	            
-            };
-
-	        
-
-            foreach (string colorName in nameToColor.Keys)
-            {
-                picker1.Items.Add(colorName);
-                picker2.Items.Add(colorName);
+                myViewModel.PlotModel = new PlotModel
+                {
+                    Title = "Line"
+                };
+                CreatePlot();
+                myViewModel.PlotModel.Axes.Add(new DateTimeAxis { Position = AxisPosition.Bottom, Minimum = minValue, Maximum = maxValue, StringFormat = "M/d" });
+                //myViewModel.OnAppearing();
             }
 
-            // Create BoxView for displaying picked Color
-            BoxView boxView = new BoxView
-            {
-                WidthRequest = 150,
-                HeightRequest = 150,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.CenterAndExpand
-            };
-
-            picker1.SelectedIndexChanged += (sender, args) =>
-            {
-                if (picker1.SelectedIndex == -1)
-                {
-                    boxView.Color = Color.Default;
-                }
-                else
-                {
-                    string colorName = picker1.Items[picker1.SelectedIndex];
-                    boxView.Color = nameToColor[colorName]; ;
-                }
-            };
-
-            // Accomodate iPhone status bar.
-            this.Padding = new Thickness(10, Device.OnPlatform(20, 0, 0), 10, 5);
-
-	        AreaModel = CreateAreaChart();
-
-            var pltview = new PlotView()
-            {
-                WidthRequest = 300,
-                HeightRequest = 300,
-            };
-
-            pltview.Model = AreaModel;
-
-            // Build the page.
-            this.Content = new StackLayout
-            {
-                Children =
-                {
-                    header,
-                    picker1,
-                    picker2,
-                    //boxView,
-                    pltview
-                }
-            };
-
+ 
         }
-        
+
+        public void CreatePlot()
+	    {
+	        //PlotModel = new PlotModel { Title = "AreaSeries with crossing lines" };
+	        LineSeriesOne.Points.Clear();
+            LineSeriesOne.Points.Add(new DataPoint(0, 0));
+            LineSeriesOne.Points.Add(new DataPoint(10, 20));
+            LineSeriesOne.Points.Add(new DataPoint(30, 1));
+            LineSeriesOne.Points.Add(new DataPoint(40, 12));
+
+            myViewModel.AddToPlot(LineSeriesOne);
+	    }
+
+	    private void LineOnePicker_OnSelectedIndexChanged(object sender, EventArgs e)
+	    {
+	        UpdatePlot(1);
+        }
+
+	    private void LineTwoPicker_OnSelectedIndexChanged(object sender, EventArgs e)
+	    {
+	        UpdatePlot(2);
+	    }
+
+	    private async void UpdatePlot(int plotLine)
+	    {
+	        string date = DateTime.Today.AddDays(Dias).ToString("yyyyMMdd");
+
+            if (plotLine == 1)
+	        {
+	            var symbol = myViewModel.GetLineOnePickerValue();
+
+	            var requestResponse = await MyRequest.SendRequest(date, symbol);
+
+	            LineSeriesOne.Points.Clear();
+	            myViewModel.EmptyPlot(LineSeriesOne);
+
+	            AddSeries(LineSeriesOne, requestResponse.ToString());
+            }
+
+	        if (plotLine == 2)
+	        {
+	            var symbol = myViewModel.GetLineTwoPickerValue();
+
+	            var requestResponse = await MyRequest.SendRequest(date, symbol);
+
+	            LineSeriesTwo.Points.Clear();
+	            myViewModel.EmptyPlot(LineSeriesTwo);
+
+	            AddSeries(LineSeriesTwo, requestResponse.ToString());
+	        }
+
+	        else return;
+	    }
+
+	    private void AddSeries(LineSeries newLine, string request)
+	    {
+	        dynamic magic = JsonConvert.DeserializeObject(request);
+
+	        if (magic.results == null) return;
+
+	        var teste = magic.results;
+
+	        foreach (var item in teste)
+	        {
+	            foreach (var field in item)
+	            {
+	                Debug.WriteLine((string)field);
+	            }
+
+	            var newDate = DateTime.ParseExact((string)item.tradingDay, "yyyy-MM-dd", CultureInfo.InvariantCulture);
+	            var open = item.close;
+	            Debug.WriteLine("Close: " + (string)open);
+	            newLine.Points.Add(new DataPoint(DateTimeAxis.ToDouble(newDate), (double)open));
+	        }
+	        Debug.WriteLine("Go");
+	        myViewModel.AddToPlot(newLine);
+
+	    }
+
+
+	    private void Btn7Dias_OnClicked(object sender, EventArgs e)
+	    {
+	        Dias = -7;
+            UpdatePlot(1);
+	        UpdatePlot(2);
+        }
+
+	    private void Btn30Dias_OnClicked(object sender, EventArgs e)
+	    {
+	        Dias = -30;
+	        UpdatePlot(1);
+	        UpdatePlot(2);
+        }
 	}
+
 }

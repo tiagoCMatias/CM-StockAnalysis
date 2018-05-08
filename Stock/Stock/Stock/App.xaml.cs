@@ -2,18 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using Stock.ViewModel.Base;
 using Xamarin.Forms;
 
 namespace Stock
 {
 	public partial class App : Application
 	{
-		public App ()
+
+        private static ViewModelLocator _locator;
+
+        public static ViewModelLocator Locator
+        {
+            get { return _locator = _locator ?? new ViewModelLocator(); }
+        }
+
+        public App ()
 		{
 			InitializeComponent();
 
-			MainPage = new MainPage();
+			MainPage = new NavigationPage(new MainPage());
 		}
 
 		protected override void OnStart ()

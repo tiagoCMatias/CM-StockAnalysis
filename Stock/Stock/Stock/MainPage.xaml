@@ -2,16 +2,68 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Stock"
-             xmlns:oxy="clr-namespace:OxyPlot.Xamarin.Forms;assembly=OxyPlot.Xamarin.Forms"
+             xmlns:oxyplot="clr-namespace:OxyPlot.Xamarin.Forms;assembly=OxyPlot.Xamarin.Forms"
+
              x:Class="Stock.MainPage">
 
-	
-
-    <StackLayout>
-        <Label Text="Welcome to Xamarin.Forms!" 
-               VerticalOptions="Center" 
-               HorizontalOptions="Center" />
-        <Button Text="Teste" ></Button>
-    </StackLayout>
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="10*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" 
+                   Grid.ColumnSpan="2"
+                   Text="My Sample App" 
+                   FontAttributes="Bold"
+                   FontSize="Large"
+                   VerticalOptions="Center" 
+                   HorizontalOptions="Center" />
+            <!-- Picker Row 1 -->
+            <Picker 
+                Grid.Row="1" 
+                Grid.Column="0"
+                x:Name="LineOnePicker"
+                ItemsSource="{Binding Companies}"
+                SelectedItem="{Binding LineOne}"
+                ItemDisplayBinding="{Binding Name}"
+                SelectedIndexChanged="LineOnePicker_OnSelectedIndexChanged"
+                />
+            <Picker 
+                Grid.Row="1" 
+                Grid.Column="1"
+                x:Name="LineTwoPicker"
+                ItemsSource="{Binding Companies}"
+                SelectedItem="{Binding LineTwo}"
+                ItemDisplayBinding="{Binding Name}"
+                SelectedIndexChanged="LineTwoPicker_OnSelectedIndexChanged"
+            />
+            <!-- Date Row 1 -->
+            <Button 
+                    x:Name="Btn7Dias"
+                    Grid.Row="2" 
+                    Grid.Column="0"
+                Clicked="Btn7Dias_OnClicked"
+                    Text="Ultimos 7 dias"/>
+            <Button 
+                    x:Name="Btn30Dias"
+                Clicked="Btn30Dias_OnClicked"
+                    Grid.Row="2" 
+                    Grid.Column="1"
+                    Text="Ultimos 30 dias"/>
+            <!-- Plot -->
+            <oxyplot:PlotView 
+                Grid.Row="3" 
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Model="{Binding PlotModel}"/>
+        </Grid>
+    </ContentPage.Content>
 
 </ContentPage>
