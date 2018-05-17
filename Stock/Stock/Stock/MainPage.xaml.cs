@@ -64,6 +64,7 @@ namespace Stock
                 };
                 CreatePlot();
                 myViewModel.PlotModel.Axes.Add(new DateTimeAxis { Position = AxisPosition.Bottom, Minimum = minValue, Maximum = maxValue, StringFormat = "M/d" });
+                
                 //myViewModel.OnAppearing();
             }
 
@@ -119,9 +120,10 @@ namespace Stock
 
 	            AddSeries(LineSeriesTwo, requestResponse.ToString());
 	        }
-
 	        else return;
-	    }
+
+	        
+        }
 
 	    private void AddSeries(LineSeries newLine, string request)
 	    {
@@ -145,8 +147,9 @@ namespace Stock
 	        }
 	        Debug.WriteLine("Go");
 	        myViewModel.AddToPlot(newLine);
+	        myViewModel.PlotModel.InvalidatePlot(true);
 
-	    }
+        }
 
 
 	    private void Btn7Dias_OnClicked(object sender, EventArgs e)
