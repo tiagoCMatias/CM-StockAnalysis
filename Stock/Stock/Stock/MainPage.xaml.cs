@@ -99,27 +99,40 @@ namespace Stock
 
             if (plotLine == 1)
 	        {
-	            var symbol = myViewModel.GetLineOnePickerValue();
+                try
+                {
+                    var symbol = myViewModel.GetLineOnePickerValue();
 
-	            var requestResponse = await MyRequest.SendRequest(date, symbol);
+                    var requestResponse = await MyRequest.SendRequest(date, symbol);
 
-	            LineSeriesOne.Points.Clear();
-	            myViewModel.EmptyPlot(LineSeriesOne);
+                    LineSeriesOne.Points.Clear();
+                    myViewModel.EmptyPlot(LineSeriesOne);
 
-	            AddSeries(LineSeriesOne, requestResponse.ToString());
+                    AddSeries(LineSeriesOne, requestResponse.ToString());
+
+                } catch (System.NullReferenceException)
+                {
+                    return;
+                }
             }
 
 	        if (plotLine == 2)
 	        {
-	            var symbol = myViewModel.GetLineTwoPickerValue();
+                try {
+	                var symbol = myViewModel.GetLineTwoPickerValue();
 
-	            var requestResponse = await MyRequest.SendRequest(date, symbol);
+	                var requestResponse = await MyRequest.SendRequest(date, symbol);
 
-	            LineSeriesTwo.Points.Clear();
-	            myViewModel.EmptyPlot(LineSeriesTwo);
+	                LineSeriesTwo.Points.Clear();
+	                myViewModel.EmptyPlot(LineSeriesTwo);
 
-	            AddSeries(LineSeriesTwo, requestResponse.ToString());
-	        }
+	                AddSeries(LineSeriesTwo, requestResponse.ToString());
+
+                } catch (System.NullReferenceException)
+                {
+                    return;
+                }
+        }
 	        else return;
 
 	        
